@@ -1,43 +1,53 @@
 #include "../lib/raylib.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 const int WIDTH = 1920;
 const int HIGHT = 1080;
-const int GRAV = 9;
+const int GRAV = 1;
 
 typedef struct {
-    int dir;
-    int vel;
-  } vec2 ;
-
+  int dir;
+  int vel;
+} Inertia;
 
 typedef struct {
   int posx;
   int posy;
-  vec2 enertia;
-  } Circle;
+  Inertia inertia;
+} Circle;
 
-void updatePos(Circle* circle) {
-  circle->enertia.vel = circle->enertia.vel * GRAV;
-  //TODO: left here
-  circle->posy = circle->posy; 
+void resolveCollision(Circle *circle) {
+  if (circle->posx < 0 || circle->posx > WIDTH) {
+    printf("X boundry checking not impl");
+    exit(1);
+  }
+  if (circle->posy < 0 || circle->posy > HIGHT) {
+    circle->inertia.vel -= 2 * circle->inertia.vel + GRAV;
+  }
+};
+
+void updatePos(Circle *circle) {
+  circle->inertia.vel += GRAV;
+  circle->posy += circle->inertia.vel;
+
+  resolveCollision(circle);
 }
 
 int main() {
   InitWindow(WIDTH, HIGHT, "This some bullshit");
   SetTargetFPS(60);
-  
-  Circle * circle = malloc(sizeof(Circle));
-  circle->posx = WIDTH/2;
-  circle->posy = HIGHT/2;
-  circle->enertia.vel = 1;
-  circle->enertia.dir = 0;
 
-  while(!WindowShouldClose()) {
-    
+  Circle circle = {WIDTH / 2, HIGHT / 2, {1, 1}};
 
+  while (!WindowShouldClose()) {
+    updatePos(&circle);
+
+    ClearBackground(BLACK);
     BeginDrawing();
-    DrawCircle( WIDTH/2, HIGHT/2, 100, RED);
+    DrawCircle(circle.posx, circle.posy, 100, RED);
+
+    DrawFPS(10, 10);
     EndDrawing();
   }
 }
